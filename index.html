@@ -39,8 +39,8 @@ function createWeekUI() {
 
     div.innerHTML = `
       <h3>${d}</h3>
-      <input type="time" id="start${i}" onchange="saveData()">
-      <input type="time" id="end${i}" onchange="saveData()">
+      <input type="time" id="start${i}"onclick="resetMinutes(this)" onchange="saveData()">
+      <input type="time" id="end${i}"onclick="resetMinutes(this)" onchange="saveData()">
       <button class="add" onclick="setShift(${i})">追加</button>
       <button class="rest" onclick="setRest(${i})">休み</button>
       <div id="result${i}"></div>
