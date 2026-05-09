@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>週間シフト（自由入力）</title>
+</head>
+<body>
+
+<h2>1週間シフト入力</h2>
+
+<label>開始日：</label>
+<input type="date" id="startDate">
+
+<h3>シフト入力</h3>
+<div id="week"></div>
+
+<br>
+<button onclick="generateICS()">カレンダー作成</button>
+
+<script>
+const days = ["月","火","水","木","金","土","日"];
+let shifts = [];
+
+function createWeekUI() {
+  const container = document.getElementById("week");
+  container.innerHTML = "";
+
+  days.forEach((d, i) => {
+    const div = document.createElement("div");
+
+    div.innerHTML = `
+      <b>${d}</b>
+      開始：<input type="time" id="start${i}">
+      終了：<input type="time" id="end${i}">
+      <button onclick="setShift(${i})">追加</button>
+      <button onclick="setRest(${i})">休み</button>
+      <span id="result${i}"></span>
+      <br><br>
+    `;
+
+    container.appendChild(div);
+  });
+}
+
+function setShift(index) {
+  const startDate = document.getElementById("startDate").value;
+  if (!startDate) {
+    alert("開始日を選んで");
+    return;
+  }
+
+  const start = document.getElementById(`start${index}`).value;
+  const end = document.getElementById(`end${index}`).value;
+
+  if (!start || !end) {
+    alert("時間を入力して");
+    return;
+  }
+
+  const base = new Date(startDate);
+  base.setDate(base.getDate() + index);
+
+  const yyyy = base.getFullYear();
+  const mm = String(base.getMonth()+1).padStart(2,"0");
+  const dd = String(base.getDate()).padStart(2,"0");
+
+  const date = `${yyyy}-${mm}-${dd}`;
+
+  shifts[index] = { date, start, end };document.getElementById(`result${index}`).innerText =
+
+    `${start}-${end}`;
+
+}
+
+function setRest(index) {
+
+  shifts[index] = { rest: true };
+
+  document.getElementById(`result${index}`).innerText = "休み";
+
+}
+
+function generateICS() {
+
+  let events = "";
+
+  shifts.forEach(s => {
+
+    if (!s || s.rest) return;
+
+    const d = s.date.replaceAll("-", "");
+
+    const start = s.start.replace(":", "");
+
+    const end = s.end.replace(":", "");
+
+    events += `
+
+BEGIN:VEVENT
+
+SUMMARY:バイト
+
+DTSTART:${d}T${start}00
+
+DTEND:${d}T${end}00
+
+END:VEVENT
+
+`;
+
+  });
+
+  const ics = `
+
+BEGIN:VCALENDAR
+
+VERSION:2.0
+
+${events}
+
+END:VCALENDAR
+
+`;
+
+  const blob = new Blob([ics], { type: "text/calendar" });
+
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+
+  a.href = url;
+
+  a.download = "shift.ics";
+
+  a.click();
+
+}
+
+createWeekUI();
+
+</script>
+
+</body>
+
+</html>
